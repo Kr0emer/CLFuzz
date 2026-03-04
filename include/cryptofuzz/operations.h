@@ -489,7 +489,7 @@ class SymmetricDecrypt : public Operation {
             cipher(ds),
             tag(ds.Get<bool>() ? std::nullopt : std::make_optional<component::Tag>(ds)),
             aad(ds.Get<bool>() ? std::nullopt : std::make_optional<component::AAD>(ds)),
-            cleartextSize(ds.Get<uint64_t>() % (10*1024*1024))
+            cleartextSize(ds.Get<uint64_t>() % (10*1024*1024)),
             expected(ds.Get<uint8_t>())
         { }
         SymmetricDecrypt(const SymmetricEncrypt& opSymmetricEncrypt, const component::Ciphertext ciphertext, const uint64_t cleartextSize, std::optional<component::AAD> aad, component::Modifier modifier);
@@ -507,7 +507,8 @@ class SymmetricDecrypt : public Operation {
                         std::optional<component::AAD>(json["aad"]) :
                         std::optional<component::AAD>(std::nullopt)
             ),
-            cleartextSize(json["cleartextSize"].get<uint64_t>())
+            cleartextSize(json["cleartextSize"].get<uint64_t>()),
+            expected(json.contains("expected") ? json["expected"].get<uint8_t>() : 0)
         { }
 
         static size_t MaxOperations(void) { return 20; }
@@ -524,6 +525,7 @@ class SymmetricDecrypt : public Operation {
                 (tag == rhs.tag) &&
                 (aad == rhs.aad) &&
                 (cleartextSize == rhs.cleartextSize) &&
+                (expected == rhs.expected) &&
                 (modifier == rhs.modifier);
         }
         void Serialize(Datasource& ds) const {
@@ -542,6 +544,7 @@ class SymmetricDecrypt : public Operation {
                 aad->Serialize(ds);
             }
             ds.Put<>(cleartextSize);
+            ds.Put<>(expected);
         }
 };
 

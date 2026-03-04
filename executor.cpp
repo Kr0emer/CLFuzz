@@ -97,9 +97,11 @@ template<> void ExecutorBase<component::Ciphertext, operation::SymmetricEncrypt>
                 case    ID("Cryptofuzz/Cipher/ARIA_128_GCM"):
                 case    ID("Cryptofuzz/Cipher/ARIA_192_GCM"):
                 case    ID("Cryptofuzz/Cipher/ARIA_256_GCM"):
+                case    ID("Cryptofuzz/Cipher/CHACHA20_POLY1305"):
+                case    ID("Cryptofuzz/Cipher/XCHACHA20_POLY1305"):
                     if ( op.tagSize == std::nullopt ) {
-                        /* OpenSSL fails to decrypt its own CCM and GCM ciphertexts if
-                         * a tag is not included
+                        /* OpenSSL AEAD modes fail self-decrypt checks if no tag is supplied.
+                         * This affects CCM/GCM and ChaCha20-Poly1305 family.
                          */
                         tryDecrypt = false;
                     }
@@ -109,7 +111,14 @@ template<> void ExecutorBase<component::Ciphertext, operation::SymmetricEncrypt>
 
         if ( tryDecrypt == true ) {
             /* Try to decrypt the encrypted data */
-            Pool_BlockCipherEncrypt.Set({op.cipher.key, op.cipher.iv, op.cleartext, op.cipher.cipherType, op.cleartext.GetSize() + 32,  *(result.second)})
+            Pool_BlockCipherEncrypt.Set({
+                op.cipher.key.ToHex(),
+                op.cipher.iv.ToHex(),
+                op.cleartext.ToHex(),
+                op.cipher.cipherType.Get(),
+                static_cast<uint64_t>(op.cleartext.GetSize() + 32),
+                result.second->ciphertext.ToHex()
+            });
             /* Construct a SymmetricDecrypt instance with the SymmetricEncrypt instance */
             auto opDecrypt = operation::SymmetricDecrypt(
                     /* The SymmetricEncrypt instance */
@@ -1744,6 +1753,10 @@ OperationType ExecutorBase<ResultType, OperationType>::getOp(Datasource* parentD
 
 template <class ResultType, class OperationType>
 std::shared_ptr<Module> ExecutorBase<ResultType, OperationType>::getModule(Datasource& ds) const {
+    if ( modules.empty() ) {
+        return nullptr;
+    }
+
     auto moduleID = ds.Get<uint64_t>();
     /* counting get module times */
 
@@ -1756,13 +1769,29 @@ std::shared_ptr<Module> ExecutorBase<ResultType, OperationType>::getModule(Datas
         return nullptr;
     }
 
-    if ( modules.find(moduleID) == modules.end() ) {
-        /* counting unexisted module */
-        
-        moduleID = fuzzing::datasource::ID( ("Cryptofuzz/Module/OpenSSL"));
+    auto it = modules.find(moduleID);
+    if ( it != modules.end() ) {
+        return it->second;
     }
 
-    return modules.at(moduleID);
+    /* Fallback to OpenSSL if it is available and not disabled */
+    const auto opensslModuleID = fuzzing::datasource::ID("Cryptofuzz/Module/OpenSSL");
+    if ( !options.disableModules.HaveExplicit(opensslModuleID) ) {
+        it = modules.find(opensslModuleID);
+        if ( it != modules.end() ) {
+            return it->second;
+        }
+    }
+
+    /* Final fallback: pick the first enabled module to avoid throwing */
+    for (const auto& module : modules) {
+        if ( options.disableModules.HaveExplicit(module.first) ) {
+            continue;
+        }
+        return module.second;
+    }
+
+    return nullptr;
 }
 
 

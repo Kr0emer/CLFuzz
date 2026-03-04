@@ -30,6 +30,42 @@ extern "C" { void ossl_x448_public_from_private(uint8_t out_public_value[56], co
 #include "bn_ops.h"
 #include "../../recyclepool.h"
 
+#if defined(OPENSSL_NO_MD2)
+#define CF_EVP_MD2() nullptr
+#else
+#define CF_EVP_MD2() EVP_md2()
+#endif
+
+#if defined(OPENSSL_NO_MDC2)
+#define CF_EVP_MDC2() nullptr
+#else
+#define CF_EVP_MDC2() EVP_mdc2()
+#endif
+
+#if defined(OPENSSL_NO_IDEA)
+#define CF_EVP_IDEA_ECB() nullptr
+#define CF_EVP_IDEA_CFB() nullptr
+#define CF_EVP_IDEA_OFB() nullptr
+#define CF_EVP_IDEA_CBC() nullptr
+#else
+#define CF_EVP_IDEA_ECB() EVP_idea_ecb()
+#define CF_EVP_IDEA_CFB() EVP_idea_cfb()
+#define CF_EVP_IDEA_OFB() EVP_idea_ofb()
+#define CF_EVP_IDEA_CBC() EVP_idea_cbc()
+#endif
+
+#if defined(OPENSSL_NO_RC5)
+#define CF_EVP_RC5_32_12_16_ECB() nullptr
+#define CF_EVP_RC5_32_12_16_CFB() nullptr
+#define CF_EVP_RC5_32_12_16_OFB() nullptr
+#define CF_EVP_RC5_32_12_16_CBC() nullptr
+#else
+#define CF_EVP_RC5_32_12_16_ECB() EVP_rc5_32_12_16_ecb()
+#define CF_EVP_RC5_32_12_16_CFB() EVP_rc5_32_12_16_cfb()
+#define CF_EVP_RC5_32_12_16_OFB() EVP_rc5_32_12_16_ofb()
+#define CF_EVP_RC5_32_12_16_CBC() EVP_rc5_32_12_16_cbc()
+#endif
+
 namespace cryptofuzz {
 namespace module {
 
@@ -193,10 +229,10 @@ const EVP_MD* OpenSSL::toEVPMD(const component::DigestType& digestType) const {
         { CF_DIGEST("SHA256"), EVP_sha256() },
         { CF_DIGEST("SHA384"), EVP_sha384() },
         { CF_DIGEST("SHA512"), EVP_sha512() },
-        { CF_DIGEST("MD2"), EVP_md2() },
+        { CF_DIGEST("MD2"), CF_EVP_MD2() },
         { CF_DIGEST("MD4"), EVP_md4() },
         { CF_DIGEST("MD5"), EVP_md5() },
-        { CF_DIGEST("MDC2"), EVP_mdc2() },
+        { CF_DIGEST("MDC2"), CF_EVP_MDC2() },
         { CF_DIGEST("RIPEMD160"), EVP_ripemd160() },
         { CF_DIGEST("WHIRLPOOL"), EVP_whirlpool() },
 #elif defined(CRYPTOFUZZ_OPENSSL_110)
@@ -205,11 +241,11 @@ const EVP_MD* OpenSSL::toEVPMD(const component::DigestType& digestType) const {
         { CF_DIGEST("SHA256"), EVP_sha256() },
         { CF_DIGEST("SHA384"), EVP_sha384() },
         { CF_DIGEST("SHA512"), EVP_sha512() },
-        { CF_DIGEST("MD2"), EVP_md2() },
+        { CF_DIGEST("MD2"), CF_EVP_MD2() },
         { CF_DIGEST("MD4"), EVP_md4() },
         { CF_DIGEST("MD5"), EVP_md5() },
         { CF_DIGEST("MD5_SHA1"), EVP_md5_sha1() },
-        { CF_DIGEST("MDC2"), EVP_mdc2() },
+        { CF_DIGEST("MDC2"), CF_EVP_MDC2() },
         { CF_DIGEST("RIPEMD160"), EVP_ripemd160() },
         { CF_DIGEST("WHIRLPOOL"), EVP_whirlpool() },
         { CF_DIGEST("BLAKE2B512"), EVP_blake2b512() },
@@ -220,11 +256,11 @@ const EVP_MD* OpenSSL::toEVPMD(const component::DigestType& digestType) const {
         { CF_DIGEST("SHA256"), EVP_sha256() },
         { CF_DIGEST("SHA384"), EVP_sha384() },
         { CF_DIGEST("SHA512"), EVP_sha512() },
-        { CF_DIGEST("MD2"), EVP_md2() },
+        { CF_DIGEST("MD2"), CF_EVP_MD2() },
         { CF_DIGEST("MD4"), EVP_md4() },
         { CF_DIGEST("MD5"), EVP_md5() },
         { CF_DIGEST("MD5_SHA1"), EVP_md5_sha1() },
-        { CF_DIGEST("MDC2"), EVP_mdc2() },
+        { CF_DIGEST("MDC2"), CF_EVP_MDC2() },
         { CF_DIGEST("RIPEMD160"), EVP_ripemd160() },
         { CF_DIGEST("WHIRLPOOL"), EVP_whirlpool() },
         { CF_DIGEST("SM3"), EVP_sm3() },
@@ -292,13 +328,13 @@ const EVP_CIPHER* OpenSSL::toCMAC_EVPCIPHER(const component::SymmetricCipherType
         case CF_CIPHER("RC4_HMAC_MD5"):
             return EVP_rc4_hmac_md5();
         case CF_CIPHER("IDEA_ECB"):
-            return EVP_idea_ecb();
+            return CF_EVP_IDEA_ECB();
         case CF_CIPHER("IDEA_CFB"):
-            return EVP_idea_cfb();
+            return CF_EVP_IDEA_CFB();
         case CF_CIPHER("IDEA_OFB"):
-            return EVP_idea_ofb();
+            return CF_EVP_IDEA_OFB();
         case CF_CIPHER("IDEA_CBC"):
-            return EVP_idea_cbc();
+            return CF_EVP_IDEA_CBC();
         case CF_CIPHER("SEED_ECB"):
             return EVP_seed_ecb();
         case CF_CIPHER("SEED_CFB"):
@@ -346,13 +382,13 @@ const EVP_CIPHER* OpenSSL::toCMAC_EVPCIPHER(const component::SymmetricCipherType
         case CF_CIPHER("CAST5_CBC"):
             return EVP_cast5_cbc();
         case CF_CIPHER("RC5_32_12_16_ECB"):
-            return EVP_rc5_32_12_16_ecb();
+            return CF_EVP_RC5_32_12_16_ECB();
         case CF_CIPHER("RC5_32_12_16_CFB"):
-            return EVP_rc5_32_12_16_cfb();
+            return CF_EVP_RC5_32_12_16_CFB();
         case CF_CIPHER("RC5_32_12_16_OFB"):
-            return EVP_rc5_32_12_16_ofb();
+            return CF_EVP_RC5_32_12_16_OFB();
         case CF_CIPHER("RC5_32_12_16_CBC"):
-            return EVP_rc5_32_12_16_cbc();
+            return CF_EVP_RC5_32_12_16_CBC();
         // case CF_CIPHER("AES_128_ECB"):
         //     return EVP_aes_128_ecb();
         case CF_CIPHER("AES_128_CBC"):
@@ -562,13 +598,13 @@ const EVP_CIPHER* OpenSSL::toEVPCIPHER(const component::SymmetricCipherType ciph
         case CF_CIPHER("RC4_HMAC_MD5"):
             return EVP_rc4_hmac_md5();
         case CF_CIPHER("IDEA_ECB"):
-            return EVP_idea_ecb();
+            return CF_EVP_IDEA_ECB();
         case CF_CIPHER("IDEA_CFB"):
-            return EVP_idea_cfb();
+            return CF_EVP_IDEA_CFB();
         case CF_CIPHER("IDEA_OFB"):
-            return EVP_idea_ofb();
+            return CF_EVP_IDEA_OFB();
         case CF_CIPHER("IDEA_CBC"):
-            return EVP_idea_cbc();
+            return CF_EVP_IDEA_CBC();
         case CF_CIPHER("SM4_ECB"):
             return EVP_sm4_ecb();
         case CF_CIPHER("SM4_CBC"):
@@ -757,13 +793,13 @@ const EVP_CIPHER* OpenSSL::toEVPCIPHER(const component::SymmetricCipherType ciph
         case CF_CIPHER("RC4_HMAC_MD5"):
             return EVP_rc4_hmac_md5();
         case CF_CIPHER("IDEA_ECB"):
-            return EVP_idea_ecb();
+            return CF_EVP_IDEA_ECB();
         case CF_CIPHER("IDEA_CFB"):
-            return EVP_idea_cfb();
+            return CF_EVP_IDEA_CFB();
         case CF_CIPHER("IDEA_OFB"):
-            return EVP_idea_ofb();
+            return CF_EVP_IDEA_OFB();
         case CF_CIPHER("IDEA_CBC"):
-            return EVP_idea_cbc();
+            return CF_EVP_IDEA_CBC();
         case CF_CIPHER("SEED_ECB"):
             return EVP_seed_ecb();
         case CF_CIPHER("SEED_CFB"):
@@ -801,13 +837,13 @@ const EVP_CIPHER* OpenSSL::toEVPCIPHER(const component::SymmetricCipherType ciph
         case CF_CIPHER("CAST5_CBC"):
             return EVP_cast5_cbc();
         case CF_CIPHER("RC5_32_12_16_ECB"):
-            return EVP_rc5_32_12_16_ecb();
+            return CF_EVP_RC5_32_12_16_ECB();
         case CF_CIPHER("RC5_32_12_16_CFB"):
-            return EVP_rc5_32_12_16_cfb();
+            return CF_EVP_RC5_32_12_16_CFB();
         case CF_CIPHER("RC5_32_12_16_OFB"):
-            return EVP_rc5_32_12_16_ofb();
+            return CF_EVP_RC5_32_12_16_OFB();
         case CF_CIPHER("RC5_32_12_16_CBC"):
-            return EVP_rc5_32_12_16_cbc();
+            return CF_EVP_RC5_32_12_16_CBC();
         case CF_CIPHER("AES_128_ECB"):
             return EVP_aes_128_ecb();
         case CF_CIPHER("AES_128_CBC"):
@@ -960,13 +996,13 @@ const EVP_CIPHER* OpenSSL::toEVPCIPHER(const component::SymmetricCipherType ciph
         case CF_CIPHER("RC4_HMAC_MD5"):
             return EVP_rc4_hmac_md5();
         case CF_CIPHER("IDEA_ECB"):
-            return EVP_idea_ecb();
+            return CF_EVP_IDEA_ECB();
         case CF_CIPHER("IDEA_CFB"):
-            return EVP_idea_cfb();
+            return CF_EVP_IDEA_CFB();
         case CF_CIPHER("IDEA_OFB"):
-            return EVP_idea_ofb();
+            return CF_EVP_IDEA_OFB();
         case CF_CIPHER("IDEA_CBC"):
-            return EVP_idea_cbc();
+            return CF_EVP_IDEA_CBC();
         case CF_CIPHER("SEED_ECB"):
             return EVP_seed_ecb();
         case CF_CIPHER("SEED_CFB"):
@@ -1004,13 +1040,13 @@ const EVP_CIPHER* OpenSSL::toEVPCIPHER(const component::SymmetricCipherType ciph
         case CF_CIPHER("CAST5_CBC"):
             return EVP_cast5_cbc();
         case CF_CIPHER("RC5_32_12_16_ECB"):
-            return EVP_rc5_32_12_16_ecb();
+            return CF_EVP_RC5_32_12_16_ECB();
         case CF_CIPHER("RC5_32_12_16_CFB"):
-            return EVP_rc5_32_12_16_cfb();
+            return CF_EVP_RC5_32_12_16_CFB();
         case CF_CIPHER("RC5_32_12_16_OFB"):
-            return EVP_rc5_32_12_16_ofb();
+            return CF_EVP_RC5_32_12_16_OFB();
         case CF_CIPHER("RC5_32_12_16_CBC"):
-            return EVP_rc5_32_12_16_cbc();
+            return CF_EVP_RC5_32_12_16_CBC();
         case CF_CIPHER("AES_128_ECB"):
             return EVP_aes_128_ecb();
         case CF_CIPHER("AES_128_CBC"):
@@ -1181,13 +1217,13 @@ const EVP_CIPHER* OpenSSL::toEVPCIPHER(const component::SymmetricCipherType ciph
         case CF_CIPHER("RC4_HMAC_MD5"):
             return EVP_rc4_hmac_md5();
         case CF_CIPHER("IDEA_ECB"):
-            return EVP_idea_ecb();
+            return CF_EVP_IDEA_ECB();
         case CF_CIPHER("IDEA_CFB"):
-            return EVP_idea_cfb();
+            return CF_EVP_IDEA_CFB();
         case CF_CIPHER("IDEA_OFB"):
-            return EVP_idea_ofb();
+            return CF_EVP_IDEA_OFB();
         case CF_CIPHER("IDEA_CBC"):
-            return EVP_idea_cbc();
+            return CF_EVP_IDEA_CBC();
         case CF_CIPHER("SEED_ECB"):
             return EVP_seed_ecb();
         case CF_CIPHER("SEED_CFB"):
@@ -1235,13 +1271,13 @@ const EVP_CIPHER* OpenSSL::toEVPCIPHER(const component::SymmetricCipherType ciph
         case CF_CIPHER("CAST5_CBC"):
             return EVP_cast5_cbc();
         case CF_CIPHER("RC5_32_12_16_ECB"):
-            return EVP_rc5_32_12_16_ecb();
+            return CF_EVP_RC5_32_12_16_ECB();
         case CF_CIPHER("RC5_32_12_16_CFB"):
-            return EVP_rc5_32_12_16_cfb();
+            return CF_EVP_RC5_32_12_16_CFB();
         case CF_CIPHER("RC5_32_12_16_OFB"):
-            return EVP_rc5_32_12_16_ofb();
+            return CF_EVP_RC5_32_12_16_OFB();
         case CF_CIPHER("RC5_32_12_16_CBC"):
-            return EVP_rc5_32_12_16_cbc();
+            return CF_EVP_RC5_32_12_16_CBC();
         // case CF_CIPHER("AES_128_ECB"):
         //     return EVP_aes_128_ecb();
         case CF_CIPHER("AES_128_CBC"):

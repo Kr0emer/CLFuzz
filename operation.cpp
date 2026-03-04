@@ -90,6 +90,7 @@ std::string SymmetricDecrypt::ToString(void) const {
     ss << "cipher key: " << util::HexDump(cipher.key.Get()) << std::endl;
     ss << "cipher: " << repository::CipherToString(cipher.cipherType.Get()) << std::endl;
     ss << "cleartextSize: " << std::to_string(cleartextSize) << std::endl;
+    ss << "expected: " << std::to_string(expected) << std::endl;
 
     return ss.str();
 }
@@ -104,6 +105,7 @@ nlohmann::json SymmetricDecrypt::ToJSON(void) const {
     j["tag_enabled"] = (bool)(tag != std::nullopt);
     j["tag"] = tag != std::nullopt ? tag->ToJSON() : "";
     j["cleartextSize"] = cleartextSize;
+    j["expected"] = expected;
     j["modifier"] = modifier.ToJSON();
     return j;
 }
@@ -115,7 +117,8 @@ SymmetricDecrypt::SymmetricDecrypt(const SymmetricEncrypt& opSymmetricEncrypt, c
     cipher(opSymmetricEncrypt.cipher),
     tag(ciphertext.tag),
     aad(aad),
-    cleartextSize(cleartextSize)
+    cleartextSize(cleartextSize),
+    expected(0)
 { }
 
 std::string KDF_SCRYPT::Name(void) const { return "KDF_SCRYPT"; }

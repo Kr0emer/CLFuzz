@@ -10,8 +10,18 @@ namespace impl {
 /* LibTomCrypt, modular cryptographic library -- Tom St Denis */
 /* SPDX-License-Identifier: Unlicense */
 
-#define ROR(x,n) __builtin_rotateright32(x,n)
-#define ROL(x,n) __builtin_rotateleft32(x,n)
+static inline uint32_t RotateLeft32(const uint32_t x, const unsigned int n) {
+    const unsigned int r = n & 31U;
+    return r == 0U ? x : static_cast<uint32_t>((x << r) | (x >> (32U - r)));
+}
+
+static inline uint32_t RotateRight32(const uint32_t x, const unsigned int n) {
+    const unsigned int r = n & 31U;
+    return r == 0U ? x : static_cast<uint32_t>((x >> r) | (x << (32U - r)));
+}
+
+#define ROR(x,n) RotateRight32((x),(n))
+#define ROL(x,n) RotateLeft32((x),(n))
 #define ROLc(x,n) ROL(x,n)
 #define RORc(x,n) ROR(x,n)
 

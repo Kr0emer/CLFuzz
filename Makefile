@@ -40,7 +40,7 @@ botan_importer.o : botan_importer.cpp
 	$(CXX) $(CXXFLAGS) botan_importer.cpp -c -o botan_importer.o
 
 third_party/cpu_features/build/libcpu_features.a :
-	cd third_party/cpu_features && rm -rf build && mkdir build && cd build && cmake .. && make
+	cd third_party/cpu_features && rm -rf build && mkdir build && cd build && cmake .. -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && make
 
 clfuzz : driver.o executor.o util.o entry.o tests.o operation.o datasource.o repository.o options.o components.o wycheproof.o crypto.o input_generator.o numbers.o recyclepool.o ecc_diff_fuzzer_importer.o botan_importer.o third_party/cpu_features/build/libcpu_features.a
 	test $(LIBFUZZER_LINK)

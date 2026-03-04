@@ -1,0 +1,67 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Generic build outputs
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+
+# Coverage / sanitizer / profiling
+*.gcda
+*.gcno
+*.profraw
+*.profdata
+
+# Project binaries
+cryptofuzz
+generate_dict
+generate_corpus
+test_strings
+list_cpu_features
+
+# Fuzz artifacts and local logs
+crash-*
+beforeCheck.txt
+afterCheck.txt
+
+# Local/generated helper outputs
+input_generator.o
+cgitclone.sh
+generate_disable_modules.py
+make.sh
+makelib.sh
+
+# Build directories
+build/
+cmake-build-*/
+third_party/cpu_features/build/
+modules/openssl/tmp/
+
+# Downloaded third-party dependency trees
+openssl/
+cryptopp/
+botan/
+wolfssl/
+wolfsm/
+mbedtls/
+libgmp/
+libsodium/
+libgcrypt/
+libkcapi/
+SymCrypt/
+blst/
+mpdecimal-4.0.0/
+mpdecimal-4.0.0.tar.gz
+third_party/openssl-*/

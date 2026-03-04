@@ -3,6 +3,7 @@
 #include <map>
 #include <cstdint>
 #include <string>
+#include <optional>
 #include "repository_map.h"
 
 namespace cryptofuzz {
